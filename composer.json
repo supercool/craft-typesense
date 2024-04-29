@@ -2,7 +2,7 @@
     "name": "craftpulse/craft-typesense",
     "description": "Craft Plugin that synchronises with Typesense",
     "type": "craft-plugin",
-    "version": "5.4.0",
+    "version": "5.5.0",
     "keywords": [
         "craft",
         "cms",
@@ -32,7 +32,7 @@
         "php-http/guzzle7-adapter": "^1.0.0"
     },
     "require-dev": {
-        "craftcms/phpstan":"dev-main",
+        "craftcms/phpstan": "dev-main",
         "codeception/codeception": "^5.0",
         "vlucas/phpdotenv": "^3.0"
     },

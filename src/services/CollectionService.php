@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author Percipio Global Ltd. <support@percipio.london>
  * @since 1.0.0
@@ -44,6 +45,35 @@ class CollectionService extends Component
             if (!$this->getCollectionByCollectionRetrieve($index->indexName)) {
                 Typesense::$plugin->getClient()->client()->collections->create($index->schema);
             }
+        }
+    }
+
+    /**
+     * Update the schema in Typesense based on the configuration in PHP
+     *
+     * @return void
+     */
+    public function updateSchema(): void
+    {
+        $indexes = Typesense::$plugin->getSettings()->collections;
+
+        foreach ($indexes as $index) {
+
+            print('Updating schema ' . $index->indexName);
+            print(PHP_EOL);
+
+            $updateSchema = ['fields' => []];
+            foreach ($index->schema['fields'] as $field) {
+                $updateSchema['fields'][] = [
+                    'name' => $field['name'],
+                    'drop' => true
+                ];
+                $updateSchema['fields'][] = $field;
+            }
+            Typesense::$plugin->getClient()->client()->collections[$index->indexName]->update($updateSchema);
+
+            print('Updated schema ' . $index->indexName);
+            print(PHP_EOL);
         }
     }
 }
