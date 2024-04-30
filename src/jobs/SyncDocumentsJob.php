@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Typesense plugin for Craft CMS 4.x
  *
@@ -118,6 +119,6 @@ class SyncDocumentsJob extends BaseJob
      */
     protected function defaultDescription(): string
     {
-        return Craft::t('typesense', ($this->criteria['type'] ?? 'Unkown') . ' documents for ' . $this->criteria['index']);
+        return Craft::t('typesense', ($this->criteria['type'] ?? 'Unknown') . ' documents for ' . $this->criteria['index']);
     }
 }

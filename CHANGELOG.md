@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 5.6.0 - 2024-04-30
+
+### Added
+- Added ability to have multiple sections in multiple indexes
+
+## 5.5.0 - 2024-04-09
+
+### Added
+- Added schema update functionality
+
 ## 5.4.0 - 2024-04-09
 
 ### Changed
