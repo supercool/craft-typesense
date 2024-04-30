@@ -1,5 +1,5 @@
 {
-    "name": "craftpulse/craft-typesense",
+    "name": "supercool/craft-typesense",
     "description": "Craft Plugin that synchronises with Typesense",
     "type": "craft-plugin",
     "version": "5.6.0",
