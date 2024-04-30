@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Typesense plugin for Craft CMS 4.x
  *
@@ -101,7 +102,13 @@ class CollectionsController extends Controller
         $indexes = Typesense::$plugin->getSettings()->collections;
 
         foreach ($indexes as $index) {
+            // Get the first element in the index and base output on that
             $element = $index->criteria->one();
+
+            $labelOverride = false;
+            if (is_array($index->section)) {
+                $labelOverride = 'Multiple';
+            }
 
             switch ($index->elementType) {
                 case 'craft\elements\Asset':
@@ -125,9 +132,9 @@ class CollectionsController extends Controller
                     if ($section) {
                         $variables['sections'][] = [
                             'id' => $section->id,
-                            'name' => $section->name,
+                            'name' => ($labelOverride ? $labelOverride : $section->name),
                             'handle' => $section->handle,
-                            'type' => 'Entry: ' . $element->type->handle,
+                            'type' => 'Entry: ' . ($labelOverride ? $labelOverride : $element->type->handle),
                             'entryCount' => $index->criteria->count(),
                             'index' => $index->indexName,
                         ];
@@ -400,13 +407,13 @@ class CollectionsController extends Controller
         // Render the template
         return $this->renderTemplate('typesense/documents/index', $variables);
         //        $request = Craft::$app->getRequest();
-//        $index = $request->getBodyParam('index');
-//
-//        if (isset(Typesense::$plugin->getClient()->client()->collections[$index])) {
-//            return $this->asJson(Typesense::$plugin->getClient()->client()->collections[$index]->documents->export());
-//        }
-//
-//        return "this index doesn't exist";
+        //        $index = $request->getBodyParam('index');
+        //
+        //        if (isset(Typesense::$plugin->getClient()->client()->collections[$index])) {
+        //            return $this->asJson(Typesense::$plugin->getClient()->client()->collections[$index]->documents->export());
+        //        }
+        //
+        //        return "this index doesn't exist";
     }
 
     /**

@@ -358,58 +358,50 @@ class Typesense extends Plugin
                     }
 
                     $entry = $event->element;
-                    $id = $entry->id;
-                    $sectionHande = $entry->section->handle ?? null;
-                    $type = $entry->type->handle ?? null;
-                    $collection = null;
-
                     if (ElementHelper::isDraftOrRevision($entry)) {
-                        // don’t do anything with drafts or revisions
+                        // Don’t do anything with drafts or revisions
                         return;
                     }
 
-                    if ($sectionHande) {
-                        $section = '';
+                    $collections = CollectionHelper::getCollectionsBySection($entry);
 
-                        if ($type) {
-                            $section = $sectionHande . '.' . $type;
-                        }
-
-                        $collection = CollectionHelper::getCollectionBySection($section);
-
-                        // get the generic type if specific doesn't exist
-                        if (is_null($collection)) {
-                            $section = $sectionHande . '.all';
-                            $collection = CollectionHelper::getCollectionBySection($section);
-                        }
-
-                        //create collection if it doesn't exist
+                    // Create collections if they doesn't exist
+                    foreach ($collections as $collection) {
+                        // If any of the collections are not already set up as a Typesense collection index
                         if (!$collection instanceof \percipiolondon\typesense\TypesenseCollectionIndex) {
+                            // Upload the Schema to typesense for all collections
                             self::$plugin->getCollections()->saveCollections();
-                            $collection = CollectionHelper::getCollectionBySection($section);
+                            // Re-create the collections array now this has been uploaded to Typesense
+                            $collections = CollectionHelper::getCollectionsBySection($section);
+                            // We know all collections are now uploaded and added to the collections array, so, break
+                            break;
                         }
                     }
 
                     if (($entry->enabled && $entry->getEnabledForSite()) && $entry->getStatus() === 'live') {
                         // element is enabled --> save to Typesense
-                        if ($collection !== null) {
-                            Craft::info('Typesense edit / add / delete document based of: ' . $entry->title, __METHOD__);
+                        foreach ($collections as $collection) {
+                            if ($collection !== null) {
+                                Craft::info('Typesense edit / add / delete document: ' . $entry->title, __METHOD__);
 
-                            try {
-                                $resolver = $collection->schema['resolver']($entry);
+                                try {
+                                    $resolver = $collection->schema['resolver']($entry);
 
-                                if ($resolver) {
-                                    self::$plugin->getClient()->client()->collections[$collection->indexName]->documents->upsert($resolver);
+                                    if ($resolver) {
+                                        self::$plugin->getClient()->client()->collections[$collection->indexName]->documents->upsert($resolver);
+                                    }
+                                } catch (ObjectNotFound | ServerError $e) {
+                                    Craft::$app->session->setFlash('error', Craft::t('typesense', 'There was an issue saving your action, check the logs for more info'));
+                                    Craft::error($e->getMessage(), __METHOD__);
                                 }
-                            } catch (ObjectNotFound | ServerError $e) {
-                                Craft::$app->session->setFlash('error', Craft::t('typesense', 'There was an issue saving your action, check the logs for more info'));
-                                Craft::error($e->getMessage(), __METHOD__);
                             }
                         }
                     } else {
-                        // element is disabled --> delete from Typesense
-                        if ($collection !== null) {
-                            self::$plugin->getClient()->client()->collections[$collection->indexName]->documents->delete(['filter_by' => 'id: ' . $id]);
+                        foreach ($collections as $collection) {
+                            // element is disabled --> delete from Typesense
+                            if ($collection !== null) {
+                                self::$plugin->getClient()->client()->collections[$collection->indexName]->documents->delete(['filter_by' => 'id: ' . $entry->id]);
+                            }
                         }
                     }
                 }
@@ -422,32 +414,29 @@ class Typesense extends Plugin
             Elements::EVENT_AFTER_DELETE_ELEMENT,
             function (ElementEvent $event) {
                 $entry = $event->element;
-                $section = $entry->section->handle ?? null;
-                $id = $entry->id;
-                $type = $entry->type->handle ?? null;
-                $collection = null;
 
                 if (ElementHelper::isDraftOrRevision($entry)) {
                     // don’t do anything with drafts or revisions
                     return;
                 }
 
-                if ($section) {
-                    if ($type) {
-                        $section = $section . '.' . $type;
-                    }
+                $collections = CollectionHelper::getCollectionsBySection($entry);
 
-                    $collection = CollectionHelper::getCollectionBySection($section);
-
-                    //create collection if it doesn't exist
+                // Create collections if they doesn't exist
+                foreach ($collections as $collection) {
+                    // If any of the collections are not already set up as a Typesense collection index
                     if (!$collection instanceof \percipiolondon\typesense\TypesenseCollectionIndex) {
+                        // Upload the Schema to typesense for all collections
                         self::$plugin->getCollections()->saveCollections();
-                        $collection = CollectionHelper::getCollectionBySection($section);
+                        // Re-create the collections array now this has been uploaded to Typesense
+                        $collections = CollectionHelper::getCollectionsBySection($entry);
+                        // We know all collections are now uploaded and added to the collections array, so, break
+                        break;
                     }
                 }
 
                 if ($collection !== null) {
-                    self::$plugin->getClient()->client()->collections[$collection->indexName]->documents->delete(['filter_by' => 'id: ' . $id]);
+                    self::$plugin->getClient()->client()->collections[$collection->indexName]->documents->delete(['filter_by' => 'id: ' . $entry->id]);
                 }
             }
         );
