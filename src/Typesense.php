@@ -51,13 +51,13 @@ use yii\db\Expression;
  *
  * https://docs.craftcms.com/v3/extend/
  *
- * @author    percipiolondon
- * @package   Typesense
- * @since     1.0.0
+ * @package Typesense
+ * @author  percipiolondon
+ * @since   1.0.0
  *
- * @property  TypesenseService $typesenseService
- * @property  CollectionService $collectionService
- * @property  Settings $settings
+ * @property TypesenseService $typesenseService
+ * @property CollectionService $collectionService
+ * @property Settings $settings
  */
 class Typesense extends Plugin
 {
@@ -435,8 +435,10 @@ class Typesense extends Plugin
                     }
                 }
 
-                if ($collection !== null) {
-                    self::$plugin->getClient()->client()->collections[$collection->indexName]->documents->delete(['filter_by' => 'id: ' . $entry->id]);
+                foreach ($collections as $collection) {
+                    if ($collection !== null) {
+                        self::$plugin->getClient()->client()->collections[$collection->indexName]->documents->delete(['filter_by' => 'id: ' . $entry->id]);
+                    }
                 }
             }
         );
