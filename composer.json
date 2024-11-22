@@ -2,7 +2,7 @@
     "name": "supercool/craft-typesense",
     "description": "Craft Plugin that synchronises with Typesense",
     "type": "craft-plugin",
-    "version": "5.6.0",
+    "version": "5.6.1",
     "keywords": [
         "craft",
         "cms",
@@ -24,8 +24,8 @@
         }
     ],
     "require": {
-        "php": "^8.0.2",
-        "craftcms/cms": "^4.0.0",
+        "php": "^8.2",
+        "craftcms/cms": "^4.5.0 || ^5.5.0",
         "illuminate/collections": "^9.10.0",
         "nystudio107/craft-plugin-vite": "^4.0.0",
         "typesense/typesense-php": "^4.7.0",
