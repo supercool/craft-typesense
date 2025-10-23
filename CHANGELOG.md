@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 5.8.1.1 - 2025-1023
+### Added
+- Added "multiple" labels to utility pane
+- Update schema console command
+### Fixed
+- Only fire events if Typesense is configured
+- Delete documentes configured through .all
+### Changed
+- Removed redundant section configuration
+
 ## 5.8.1 - 2025-10-21
 ### Fixed
 - Fixed an issue where the custom elements couldn't resolve, only Entry's could be resolved
