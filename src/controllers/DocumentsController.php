@@ -162,7 +162,7 @@ class DocumentsController extends Controller
 
         foreach ($collections as $collection) {
 
-            //create collection if it doesn't exist
+            // Create collection if it doesn't exist
             if (!$collection instanceof \percipiolondon\typesense\TypesenseCollectionIndex) {
                 Typesense::$plugin->getCollections()->saveCollections();
                 $collection = CollectionHelper::getCollection($collection->name);
