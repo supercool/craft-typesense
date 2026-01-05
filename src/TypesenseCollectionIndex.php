@@ -60,9 +60,13 @@ class TypesenseCollectionIndex
             throw new Exception('You must return a valid ElementQuery from the criteria function.');
         }
 
+        // If siteId has not been specificed, use the primary site ID
         if (is_null($elementQuery->siteId)) {
             $elementQuery->siteId = Craft::$app->getSites()->getPrimarySite()->id;
         }
+
+        // Add the status null switch to the element query to ensure when elements are deleted or disabled they are still updated
+        $elementQuery->status(null);
 
         $this->criteria = $elementQuery;
 
