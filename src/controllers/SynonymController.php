@@ -213,6 +213,17 @@ class SynonymController extends Controller
                     ];
                     break;
 
+                case 'supercool\encore\elements\Venue':
+                    $variables['sections'][] = [
+                        'id' => 'encore-venue',
+                        'name' => 'Venue',
+                        'handle' => 'venues',
+                        'type' => 'Venue',
+                        'index' => $index->indexName,
+                        'synonyms' => $synonyms,
+                    ];
+                    break;
+
             }
         }
 

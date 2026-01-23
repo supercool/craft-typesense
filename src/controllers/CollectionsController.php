@@ -263,6 +263,17 @@ class CollectionsController extends Controller
                         'index' => $index->indexName,
                     ];
                     break;
+
+                case 'supercool\encore\elements\Venue':
+                    $variables['sections'][] = [
+                        'id' => 'encore-venue',
+                        'name' => 'Venue',
+                        'handle' => 'venues',
+                        'type' => 'Venue',
+                        'entryCount' => $index->criteria->count(),
+                        'index' => $index->indexName,
+                    ];
+                    break;
             }
         }
 
