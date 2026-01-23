@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 6.0.0 - 2026-01-23
+### Added
+- Support for Encore Events and Instances
+
 ## 5.8.2.1 - 2026-01-05
 ### Fixed
 - Ensure elements are updated in the Typesense index when disabled or deleted

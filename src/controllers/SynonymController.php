@@ -190,6 +190,29 @@ class SynonymController extends Controller
                         'synonyms' => $synonyms,
                     ];
                     break;
+
+                case 'supercool\encore\elements\Event':
+                    $variables['sections'][] = [
+                        'id' => 'events-event',
+                        'name' => 'Event',
+                        'handle' => 'events',
+                        'type' => 'Event',
+                        'index' => $index->indexName,
+                        'synonyms' => $synonyms,
+                    ];
+                    break;
+
+                case 'supercool\encore\elements\Instance':
+                    $variables['sections'][] = [
+                        'id' => 'encore-instance',
+                        'name' => 'Instance',
+                        'handle' => 'instances',
+                        'type' => 'Instance',
+                        'index' => $index->indexName,
+                        'synonyms' => $synonyms,
+                    ];
+                    break;
+
             }
         }
 
@@ -208,7 +231,7 @@ class SynonymController extends Controller
 
         try {
             $collection = CollectionHelper::getCollection($index);
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             Craft::error($e->getMessage(), 'typesense');
             return $this->redirect('typesense/synonyms');
         }
@@ -243,14 +266,14 @@ class SynonymController extends Controller
 
         // Validation logic and generate ID based on root
         if (empty($synonyms)) {
-            Craft::$app->getSession()->setError(Craft::t('typesense','At least one synonym entry is required.'));
+            Craft::$app->getSession()->setError(Craft::t('typesense', 'At least one synonym entry is required.'));
             $errors[] = Craft::t('typesense', 'At least one synonym entry is required.');
             $hasErrors = true;
         } else {
             foreach ($synonyms as $i => &$row) {
 
                 // clean the synonyms
-                $arrSynonyms = explode(',',$row['synonyms']);
+                $arrSynonyms = explode(',', $row['synonyms']);
                 $row['synonyms'] = implode(',', Typesense::$plugin->synonyms->cleanSynonymData($arrSynonyms));
 
                 // generate ID based on root
@@ -278,7 +301,7 @@ class SynonymController extends Controller
             $success = Typesense::$plugin->synonyms->saveSynonyms($index, $synonyms);
 
             if ($success) {
-                Craft::$app->getSession()->setSuccess(Craft::t('typesense','Synonyms has been saved.'));
+                Craft::$app->getSession()->setSuccess(Craft::t('typesense', 'Synonyms has been saved.'));
                 return $this->redirectToPostedUrl();
             }
         }

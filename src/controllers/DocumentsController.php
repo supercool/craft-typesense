@@ -18,6 +18,8 @@ use craftpulse\cockpit\elements\Job;
 use craftpulse\cockpit\elements\Department;
 use craftpulse\cockpit\elements\MatchFieldEntry;
 use craftpulse\cockpit\elements\Contact;
+use supercool\encore\elements\Event as EncoreEvent;
+use supercool\encore\elements\Instance as Instance;
 use Typesense\Exceptions\ObjectNotFound;
 use Typesense\Exceptions\ServerError;
 use yii\base\Event;
@@ -59,6 +61,12 @@ class DocumentsController extends Controller
                         if (class_exists(Cockpit::class)) {
                             // This allowedTypes thing is wonderful! ;)
                             $allowedTypes = [Entry::class, Job::class, Department::class, MatchFieldEntry::class, Contact::class];
+
+                            if (!in_array(get_class($event->element), $allowedTypes)) {
+                                return;
+                            }
+                        } elseif (class_exists(EncoreEvent::class)) {
+                            $allowedTypes = [Entry::class, EncoreEvent::class, Instance::class];
 
                             if (!in_array(get_class($event->element), $allowedTypes)) {
                                 return;

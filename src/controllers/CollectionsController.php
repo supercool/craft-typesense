@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Typesense plugin for Craft CMS 5.x
  *
@@ -13,15 +14,12 @@ namespace percipiolondon\typesense\controllers;
 use Craft;
 use craft\errors\MissingComponentException;
 use craft\helpers\Queue;
-
 use craft\web\Controller;
 use Http\Client\Exception;
-
 use percipiolondon\typesense\Typesense;
 use percipiolondon\typesense\events\DocumentEvent;
 use percipiolondon\typesense\helpers\CollectionHelper;
 use percipiolondon\typesense\jobs\SyncDocumentsJob;
-
 use Typesense\Exceptions\TypesenseClientError;
 use yii\base\InvalidConfigException;
 use yii\di\NotInstantiableException;
@@ -239,6 +237,28 @@ class CollectionsController extends Controller
                         'name' => 'Review',
                         'handle' => 'reviews',
                         'type' => 'Review',
+                        'entryCount' => $index->criteria->count(),
+                        'index' => $index->indexName,
+                    ];
+                    break;
+
+                case 'supercool\encore\elements\Event':
+                    $variables['sections'][] = [
+                        'id' => 'encore-event',
+                        'name' => 'Event',
+                        'handle' => 'events',
+                        'type' => 'Event',
+                        'entryCount' => $index->criteria->count(),
+                        'index' => $index->indexName,
+                    ];
+                    break;
+
+                case 'supercool\encore\elements\Instance':
+                    $variables['sections'][] = [
+                        'id' => 'encore-instance',
+                        'name' => 'Instance',
+                        'handle' => 'instances',
+                        'type' => 'Instance',
                         'entryCount' => $index->criteria->count(),
                         'index' => $index->indexName,
                     ];
@@ -495,13 +515,13 @@ class CollectionsController extends Controller
         // Render the template
         return $this->renderTemplate('typesense/documents/index', $variables);
         //        $request = Craft::$app->getRequest();
-//        $index = $request->getBodyParam('index');
-//
-//        if (isset(Typesense::$plugin->getClient()->client()->collections[$index])) {
-//            return $this->asJson(Typesense::$plugin->getClient()->client()->collections[$index]->documents->export());
-//        }
-//
-//        return "this index doesn't exist";
+        //        $index = $request->getBodyParam('index');
+        //
+        //        if (isset(Typesense::$plugin->getClient()->client()->collections[$index])) {
+        //            return $this->asJson(Typesense::$plugin->getClient()->client()->collections[$index]->documents->export());
+        //        }
+        //
+        //        return "this index doesn't exist";
     }
 
     /**
