@@ -36,7 +36,7 @@ class CollectionHelper
         $indexes = Typesense::$plugin->getSettings()->collections;
 
         foreach ($indexes as $index) {
-            if ($index->criteria->id($element->id)->count() > 0) {
+            if ($index->criteria->status(null)->id($element->id)->count() > 0) {
                 $matchingCollections[] = $index;
             }
         }

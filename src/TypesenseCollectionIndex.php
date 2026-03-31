@@ -65,9 +65,6 @@ class TypesenseCollectionIndex
             $elementQuery->siteId = Craft::$app->getSites()->getPrimarySite()->id;
         }
 
-        // Add the status null switch to the element query to ensure when elements are deleted or disabled they are still updated
-        $elementQuery->status(null);
-
         $this->criteria = $elementQuery;
 
         return $this;
