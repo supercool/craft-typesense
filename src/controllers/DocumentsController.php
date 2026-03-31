@@ -64,7 +64,7 @@ class DocumentsController extends Controller
                                 return;
                             }
                         } else {
-                            // Ignore any element that is not an entry
+                            // Ignore any remaining element type that is not an entry
                             if (!($event->element instanceof Entry)) {
                                 return;
                             }
@@ -174,7 +174,7 @@ class DocumentsController extends Controller
 
             $resolver = $collection->schema['resolver']($entry);
 
-            if (($entry->enabled && $entry->getEnabledForSite()) && $entry->getStatus() === 'live' && in_array($entry->id, $collection->criteria->ids())) {
+            if (($entry->enabled && $entry->getEnabledForSite()) && $entry->getStatus() === 'live' && in_array($entry->id, $collection->criteria->status(null)->ids())) {
                 // element is enabled --> save to Typesense
                 if ($resolver) {
                     // Trigger the before upsert event

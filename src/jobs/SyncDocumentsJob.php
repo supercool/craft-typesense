@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Typesense plugin for Craft CMS 5.x
  *
@@ -101,7 +102,6 @@ class SyncDocumentsJob extends BaseJob
                         ])
                     );
                 }
-
 
                 // convert documents into an array
                 $documents = CollectionHelper::convertDocumentsToArray($this->criteria['index']);
