@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 6.0.1 - 2026-05-12
+### Fixed
+- Fixed a `TypeError` in `handleSave()` when saving Encore `Event`, `Instance`, or `Venue` elements — the parameter type has been widened from a Cockpit-specific union to `\craft\base\Element`
+
 ## 6.0.0 - 2026-01-23
 ### Added
 - Support for Encore Events and Instances

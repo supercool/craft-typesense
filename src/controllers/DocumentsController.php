@@ -165,9 +165,9 @@ class DocumentsController extends Controller
         }
     }
 
-    protected function handleSave(Entry|Job|MatchFieldEntry|Department|Contact $entry): void
+    protected function handleSave(\craft\base\Element $element): void
     {
-        $collections = CollectionHelper::getAllCollectionsElementIsIndexedIn($entry);
+        $collections = CollectionHelper::getAllCollectionsElementIsIndexedIn($element);
 
         foreach ($collections as $collection) {
 
@@ -181,15 +181,15 @@ class DocumentsController extends Controller
                 return;
             }
 
-            $resolver = $collection->schema['resolver']($entry);
+            $resolver = $collection->schema['resolver']($element);
 
-            if (($entry->enabled && $entry->getEnabledForSite()) && $entry->getStatus() === 'live' && in_array($entry->id, $collection->criteria->status(null)->ids())) {
+            if (($element->enabled && $element->getEnabledForSite()) && $element->getStatus() === 'live' && in_array($element->id, $collection->criteria->status(null)->ids())) {
                 // element is enabled --> save to Typesense
                 if ($resolver) {
                     // Trigger the before upsert event
                     $this->triggerBeforeUpsert($collection->indexName, $resolver['id']);
 
-                    Craft::info('Typesense edit / add document based of: ' . $entry->title, __METHOD__);
+                    Craft::info('Typesense edit / add document based of: ' . $element->title, __METHOD__);
 
                     try {
                         Typesense::$plugin->getClient()->client()->collections[$collection->indexName]->documents->upsert($resolver);
@@ -207,7 +207,7 @@ class DocumentsController extends Controller
                     // Trigger the before delete event
                     $this->triggerBeforeDelete($collection->indexName, $resolver['id']);
 
-                    Craft::info('Typesense delete document based of: ' . $entry->title, __METHOD__);
+                    Craft::info('Typesense delete document based of: ' . $element->title, __METHOD__);
                     Typesense::$plugin->getClient()->client()->collections[$collection->indexName]->documents->delete(['filter_by' => 'id: ' . $resolver['id']]);
 
                     // Trigger the after delete event
