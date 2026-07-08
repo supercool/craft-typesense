@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 6.0.2 - 2026-07-08
+### Fixed
+- Fixed Encore `Event`, `Instance`, and `Venue` elements failing to restore after a soft-delete — the restore/move handler resolved the per-site element with a hardcoded `Entry::find()`, which returns `null` for non-Entry elements and threw a `TypeError` in `handleSave()`. It now resolves the element by its own type.
+- Fixed non-Entry elements never being removed from their Typesense collections on delete, caused by the same hardcoded `Entry::find()` lookup.
+
 ## 6.0.1 - 2026-05-12
 ### Fixed
 - Fixed a `TypeError` in `handleSave()` when saving Encore `Event`, `Instance`, or `Venue` elements — the parameter type has been widened from a Cockpit-specific union to `\craft\base\Element`

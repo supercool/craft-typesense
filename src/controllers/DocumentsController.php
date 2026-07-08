@@ -91,8 +91,13 @@ class DocumentsController extends Controller
                         if ($event->name === Elements::EVENT_AFTER_RESTORE_ELEMENT || $event->name === Structures::EVENT_AFTER_MOVE_ELEMENT) {
                             foreach ($element->getSupportedSites() as $site) {
                                 if ($site['siteId'] ?? null) {
-                                    $entry = Entry::find()->id($element->id)->siteId($site['siteId'])->one();
-                                    $this->handleSave($entry);
+                                    // Resolve the per-site element by its OWN type, not Entry — otherwise
+                                    // non-Entry elements (Encore Event/Instance/Venue, etc.) come back null
+                                    // and handleSave() throws a TypeError.
+                                    $siteElement = Craft::$app->getElements()->getElementById($element->id, $element::class, $site['siteId']);
+                                    if ($siteElement) {
+                                        $this->handleSave($siteElement);
+                                    }
                                 }
                             }
                         }
@@ -229,7 +234,10 @@ class DocumentsController extends Controller
         foreach ($element->getSupportedSites() as $site) {
             if ($site['siteId'] ?? null) {
 
-                $entry = Entry::find()->id($element->id)->siteId($site['siteId'])->one();
+                // Resolve the per-site element by its OWN type, not Entry — otherwise non-Entry
+                // elements (Encore Event/Instance/Venue, etc.) come back null and are silently
+                // never removed from their Typesense collections on delete.
+                $entry = Craft::$app->getElements()->getElementById($element->id, $element::class, $site['siteId']);
 
                 if ($entry) {
                     $collections = CollectionHelper::getAllCollectionsElementIsIndexedIn($entry);

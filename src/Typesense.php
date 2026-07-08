@@ -15,7 +15,6 @@ use Craft;
 use craft\base\Model;
 use craft\base\Plugin;
 use craft\console\Application as ConsoleApplication;
-use craft\elements\Entry;
 use craft\events\ElementEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\events\RegisterUserPermissionsEvent;
