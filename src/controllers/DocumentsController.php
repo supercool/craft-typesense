@@ -174,7 +174,7 @@ class DocumentsController extends Controller
 
             $resolver = $collection->schema['resolver']($entry);
 
-            if (($entry->enabled && $entry->getEnabledForSite()) && $entry->getStatus() === 'live' && in_array($entry->id, $collection->criteria->status(null)->ids())) {
+            if (($entry->enabled && $entry->getEnabledForSite()) && $entry->getStatus() === 'live' && (clone $collection->criteria)->status(null)->id($entry->id)->exists()) {
                 // element is enabled --> save to Typesense
                 if ($resolver) {
                     // Trigger the before upsert event

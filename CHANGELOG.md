@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 5.8.2.3 - 2026-10-08
+### Fixed
+- Saving an element no longer narrows the shared collection criteria for the rest of the request, which made a later sync or flush in the same process (e.g. a queue run) index only that element and delete every other document
+
 ## 5.8.2.2 - 2026-03-31
 ### Fixed
 - Stop disabled elements being indexed during sync or flush

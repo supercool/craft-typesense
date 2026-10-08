@@ -36,7 +36,9 @@ class CollectionHelper
         $indexes = Typesense::$plugin->getSettings()->collections;
 
         foreach ($indexes as $index) {
-            if ($index->criteria->status(null)->id($element->id)->count() > 0) {
+            // Clone: the criteria query is shared for the life of the process, and status()/id() mutate it.
+            // Without the clone, every later sync in the same process only sees this one element.
+            if ((clone $index->criteria)->status(null)->id($element->id)->exists()) {
                 $matchingCollections[] = $index;
             }
         }
