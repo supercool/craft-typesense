@@ -83,7 +83,9 @@ class DocumentsController extends Controller
                             foreach ($element->getSupportedSites() as $site) {
                                 if ($site['siteId'] ?? null) {
                                     $entry = Entry::find()->id($element->id)->siteId($site['siteId'])->one();
-                                    $this->handleSave($entry);
+                                    if ($entry) {
+                                        $this->handleSave($entry);
+                                    }
                                 }
                             }
                         }
@@ -217,10 +219,15 @@ class DocumentsController extends Controller
             return;
         }
 
+        $elementsService = Craft::$app->getElements();
+
         foreach ($element->getSupportedSites() as $site) {
             if ($site['siteId'] ?? null) {
 
-                $entry = Entry::find()->id($element->id)->siteId($site['siteId'])->one();
+                // Re-fetch as the element's own type: an Entry query never matches Cockpit
+                // elements, and its default status filter skips disabled elements, leaving
+                // their documents in the index. getElementById() ignores status.
+                $entry = $elementsService->getElementById($element->id, get_class($element), $site['siteId']);
 
                 if ($entry) {
                     $collections = CollectionHelper::getAllCollectionsElementIsIndexedIn($entry);
