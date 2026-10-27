@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 5.8.4.1 - 2026-10-27
+### Fixed
+- Saving a new disabled entry no longer errors in an indexed section when the collection's resolver reads a value a non-live entry doesn't have (since Craft 5.11 a new disabled entry has no post date). Resolvers now only run for live elements on save; when removing a document, a failing resolver falls back to deleting by element ID
+- Deleting an element now finds it whatever its status or element type, so disabled and Cockpit elements have their documents removed (from upstream 5.8.4)
+- Restoring or moving an element no longer errors when it doesn't exist in one of its supported sites (from upstream 5.8.4)
+
+### Changed
+- Sync and flush now run as batched queue jobs, so large collections no longer time out or run out of memory (from upstream 5.8.4)
+
 ## 5.8.2.3 - 2026-10-08
 ### Fixed
 - Saving an element no longer narrows the shared collection criteria for the rest of the request, which made a later sync or flush in the same process (e.g. a queue run) index only that element and delete every other document
