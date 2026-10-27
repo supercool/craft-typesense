@@ -3,6 +3,7 @@
 namespace percipiolondon\typesense\controllers;
 
 use Craft;
+use craft\base\ElementInterface;
 use craft\helpers\App;
 use craft\services\Structures;
 use craft\web\Controller;
@@ -13,6 +14,7 @@ use craft\services\Elements;
 use percipiolondon\typesense\events\DocumentEvent;
 use percipiolondon\typesense\helpers\CollectionHelper;
 use percipiolondon\typesense\Typesense;
+use percipiolondon\typesense\TypesenseCollectionIndex;
 use craftpulse\cockpit\Cockpit;
 use craftpulse\cockpit\elements\Job;
 use craftpulse\cockpit\elements\Department;
@@ -20,6 +22,7 @@ use craftpulse\cockpit\elements\MatchFieldEntry;
 use craftpulse\cockpit\elements\Contact;
 use Typesense\Exceptions\ObjectNotFound;
 use Typesense\Exceptions\ServerError;
+use Throwable;
 use yii\base\Event;
 
 class DocumentsController extends Controller
@@ -174,10 +177,10 @@ class DocumentsController extends Controller
                 return;
             }
 
-            $resolver = $collection->schema['resolver']($entry);
-
             if (($entry->enabled && $entry->getEnabledForSite()) && $entry->getStatus() === 'live' && (clone $collection->criteria)->status(null)->id($entry->id)->exists()) {
                 // element is enabled --> save to Typesense
+                $resolver = $collection->schema['resolver']($entry);
+
                 if ($resolver) {
                     // Trigger the before upsert event
                     $this->triggerBeforeUpsert($collection->indexName, $resolver['id']);
@@ -196,18 +199,48 @@ class DocumentsController extends Controller
                 }
             } else {
                 // element is disabled --> delete from Typesense
-                if ($resolver) {
-                    // Trigger the before delete event
-                    $this->triggerBeforeDelete($collection->indexName, $resolver['id']);
-
-                    Craft::info('Typesense delete document based of: ' . $entry->title, __METHOD__);
-                    Typesense::$plugin->getClient()->client()->collections[$collection->indexName]->documents->delete(['filter_by' => 'id: ' . $resolver['id']]);
-
-                    // Trigger the after delete event
-                    $this->triggerAfterDelete($collection->indexName, $resolver['id']);
-                }
+                $this->deleteDocument($collection, $entry);
             }
         }
+    }
+
+    /**
+     * Deletes an element's document from a collection.
+     *
+     * The document ID comes from the collection's resolver, but resolvers are written for
+     * live elements: since Craft 5.11 a new disabled entry has no post date, so a resolver
+     * that formats it throws. When that happens, fall back to the element ID, which is what
+     * resolvers conventionally use as the document ID.
+     */
+    protected function deleteDocument(TypesenseCollectionIndex $collection, ElementInterface $element): void
+    {
+        try {
+            $resolver = $collection->schema['resolver']($element);
+        } catch (Throwable $e) {
+            Craft::warning('Typesense resolver failed for non-live element #' . $element->id . ', deleting by element ID: ' . $e->getMessage(), __METHOD__);
+            $resolver = ['id' => (string)$element->id];
+        }
+
+        if (!$resolver || !isset($resolver['id'])) {
+            return;
+        }
+
+        $documentId = (string)$resolver['id'];
+
+        // Trigger the before delete event
+        $this->triggerBeforeDelete($collection->indexName, $documentId);
+
+        Craft::info('Typesense delete document based on: ' . $element->title . ' - ' . $element->getSite()->handle, __METHOD__);
+
+        try {
+            Typesense::$plugin->getClient()->client()->collections[$collection->indexName]->documents->delete(['filter_by' => 'id: ' . $documentId]);
+        } catch (ObjectNotFound | ServerError $e) {
+            Craft::error($e->getMessage(), __METHOD__);
+            return;
+        }
+
+        // Trigger the after delete event
+        $this->triggerAfterDelete($collection->indexName, $documentId);
     }
 
     protected function handleDelete(ElementEvent $event)
@@ -232,18 +265,7 @@ class DocumentsController extends Controller
                 if ($entry) {
                     $collections = CollectionHelper::getAllCollectionsElementIsIndexedIn($entry);
                     foreach ($collections as $collection) {
-                        $resolver = $collection->schema['resolver']($entry);
-
-                        if ($resolver) {
-                            // Trigger the before delete event
-                            $this->triggerBeforeDelete($collection->indexName, $resolver['id']);
-
-                            Craft::info('Typesense delete document based on: ' . $entry->title . ' - ' . $entry->getSite()->handle, __METHOD__);
-                            Typesense::$plugin->getClient()->client()->collections[$collection->indexName]->documents->delete(['filter_by' => 'id: ' . $resolver['id']]);
-
-                            // Trigger the after delete event
-                            $this->triggerAfterDelete($collection->indexName, $resolver['id']);
-                        }
+                        $this->deleteDocument($collection, $entry);
                     }
                 }
             }
