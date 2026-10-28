@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 5.8.4.2 - 2026-10-28
+### Fixed
+- When an element is removed from a site (e.g. a section's propagation method changes, or its site statuses are edited), its document is now removed from that site's collections. Previously it stayed until the next sync
+- When removing a document, a resolver that returns nothing (e.g. for a disabled element, or one from another site) now falls back to deleting by element ID, as a failing resolver already did. Previously the document was left in the collection
+- A Typesense error while saving an element in a queue job or console command no longer fails the job: the error is logged, and the control panel flash message is only set for web requests
+
 ## 5.8.4.1 - 2026-10-27
 ### Fixed
 - Saving a new disabled entry no longer errors in an indexed section when the collection's resolver reads a value a non-live entry doesn't have (since Craft 5.11 a new disabled entry has no post date). Resolvers now only run for live elements on save; when removing a document, a failing resolver falls back to deleting by element ID
