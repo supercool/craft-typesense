@@ -81,6 +81,7 @@ class DocumentsController extends Controller
                         }
 
                         $this->handleSave($element);
+                        $this->handleRemovedFromSites($element);
 
                         if ($event->name === Elements::EVENT_AFTER_RESTORE_ELEMENT || $event->name === Structures::EVENT_AFTER_MOVE_ELEMENT) {
                             foreach ($element->getSupportedSites() as $site) {
@@ -193,7 +194,10 @@ class DocumentsController extends Controller
                         // Trigger the after upsert event
                         $this->triggerAfterUpsert($collection->indexName, $resolver['id']);
                     } catch (ObjectNotFound | ServerError $e) {
-                        Craft::$app->session->setFlash('error', Craft::t('typesense', 'There was an issue saving your action, check the logs for more info'));
+                        // Console requests (including queue jobs) have no session, and setFlash() would throw
+                        if (!Craft::$app->getRequest()->getIsConsoleRequest()) {
+                            Craft::$app->getSession()->setFlash('error', Craft::t('typesense', 'There was an issue saving your action, check the logs for more info'));
+                        }
                         Craft::error($e->getMessage(), __METHOD__);
                     }
                 }
@@ -205,24 +209,52 @@ class DocumentsController extends Controller
     }
 
     /**
+     * Removes an element's document from collections it has left because it is no longer in
+     * their site: e.g. a section's propagation method changed, or the element's site
+     * statuses were edited. Craft deletes the element from that site without a delete event,
+     * and handleSave() only sees the collections the element is still in.
+     */
+    protected function handleRemovedFromSites(ElementInterface $element): void
+    {
+        foreach (Typesense::$plugin->getSettings()->collections as $collection) {
+            if (!$collection instanceof TypesenseCollectionIndex || !$element instanceof $collection->elementType) {
+                continue;
+            }
+
+            // Clone: the criteria query is shared for the life of the process
+            if ((clone $collection->criteria)->status(null)->id($element->id)->exists()) {
+                continue;
+            }
+
+            // Only collections the element would be in on another site: its sections etc. match
+            if (!(clone $collection->criteria)->site('*')->unique()->status(null)->id($element->id)->exists()) {
+                continue;
+            }
+
+            $this->deleteDocument($collection, $element);
+        }
+    }
+
+    /**
      * Deletes an element's document from a collection.
      *
      * The document ID comes from the collection's resolver, but resolvers are written for
-     * live elements: since Craft 5.11 a new disabled entry has no post date, so a resolver
-     * that formats it throws. When that happens, fall back to the element ID, which is what
-     * resolvers conventionally use as the document ID.
+     * live elements in the collection's site: since Craft 5.11 a new disabled entry has no
+     * post date, so a resolver that formats it throws, and some resolvers return nothing for
+     * a non-live element or one from another site. When the resolver gives no ID, fall back
+     * to the element ID, which is what resolvers conventionally use as the document ID.
      */
     protected function deleteDocument(TypesenseCollectionIndex $collection, ElementInterface $element): void
     {
         try {
             $resolver = $collection->schema['resolver']($element);
         } catch (Throwable $e) {
-            Craft::warning('Typesense resolver failed for non-live element #' . $element->id . ', deleting by element ID: ' . $e->getMessage(), __METHOD__);
-            $resolver = ['id' => (string)$element->id];
+            Craft::warning('Typesense resolver failed for element #' . $element->id . ', deleting by element ID: ' . $e->getMessage(), __METHOD__);
+            $resolver = null;
         }
 
         if (!$resolver || !isset($resolver['id'])) {
-            return;
+            $resolver = ['id' => (string)$element->id];
         }
 
         $documentId = (string)$resolver['id'];
